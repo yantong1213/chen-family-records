@@ -34,6 +34,7 @@
         <button class="nav-group-toggle" type="button" aria-expanded="true">陳家紀錄</button>
         <ul class="nav-sub">
           <li><a class="nav-link" href="#story">生平</a></li>
+          <li><a class="nav-link" href="#album">相簿・全部分類</a></li>
           <li><a class="nav-link" href="#middle">中年歲月</a></li>
           <li><a class="nav-link" href="#honor">模範父親</a></li>
           <li><a class="nav-link" href="#late">晚年時光</a></li>
@@ -70,11 +71,11 @@
   </div>
   <figure class="feature">
     <img src="photos/extra-4.jpg" alt="陳双春的生活點滴" loading="lazy">
-    <figcaption><strong>陳双春的生活點滴</strong>這裡收著阿公中年到晚年的照片與影片。點開任何一張，都能看到更大的照片和說明；用左右鍵或在手機上滑動，就能一張一張往下看。</figcaption>
+    <figcaption><strong>陳双春的生活點滴</strong>這裡收著阿公中年到晚年的照片與影片。照片依時期與主題分成一個個小相簿：先選一個分類，就只看那一組。點開任何一張可以放大看說明，用左右鍵或在手機上左右滑動一張一張往下看，畫面上方會顯示「第幾張／共幾張」。</figcaption>
   </figure>
 </section>
 
-<main id="stages"></main>
+<main class="album" id="album"></main>
 
 <section class="remember" id="remember">
   <div class="remember-inner">
@@ -88,11 +89,12 @@
 <footer>陳家紀錄 · 子孫敬製 · 2026</footer>
 
 <div class="lb" id="lb" aria-hidden="true">
+  <div class="lb-progress" aria-live="polite"><span class="lb-count"></span><span class="lb-bar"><i></i></span></div>
   <button class="lb-close" aria-label="關閉">×</button>
   <button class="lb-prev" aria-label="上一張">‹</button>
   <div class="lb-body">
     <div class="lb-stage"></div>
-    <aside class="lb-side"><p class="lb-tag"></p><p class="lb-cap"></p><p class="lb-count"></p></aside>
+    <aside class="lb-side"><p class="lb-tag"></p><p class="lb-cap"></p></aside>
   </div>
   <button class="lb-next" aria-label="下一張">›</button>
 </div>

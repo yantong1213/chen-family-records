@@ -6,7 +6,8 @@
 
 - `index.html`：主頁（紀念頁）
 - `family.html`：族譜
-- `js/data.js`：每張照片與影片的說明文字（可直接修改）
+- `js/data.js`：每張照片與影片的說明文字（可直接修改）；每個 `groups` 項目就是相簿裡的一個分類
+- `js/app.js`：相簿分類選單與燈箱（只顯示所選分類，燈箱顯示「第 N / M 張」）
 - `js/gate.js`：前端密碼閘門（見下方）
 - `photos/`、`thumbs/`、`videos/`、`posters/`：媒體檔案
 
