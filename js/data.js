@@ -1,4 +1,3 @@
-// 陳家紀錄：照片與影片說明。可直接修改 caption 文字。
 window.SITE_DATA = {
  "stages": [
   {
@@ -303,18 +302,6 @@ window.SITE_DATA = {
      "items": [
       {
        "type": "photo",
-       "src": "photos/late-72.jpg",
-       "thumb": "thumbs/late-72.jpg",
-       "caption": "阿嬤含蓄地笑著，手掩著嘴。"
-      },
-      {
-       "type": "photo",
-       "src": "photos/late-86.jpg",
-       "thumb": "thumbs/late-86.jpg",
-       "caption": "阿嬤笑得合不攏嘴，連忙遮住臉。"
-      },
-      {
-       "type": "photo",
        "src": "photos/mid-2000s-25.jpg",
        "thumb": "thumbs/mid-2000s-25.jpg",
        "caption": "過年的客廳坐滿了人，桌上擺滿零食。"
@@ -342,12 +329,6 @@ window.SITE_DATA = {
        "src": "photos/mid-2000s-30.jpg",
        "thumb": "thumbs/mid-2000s-30.jpg",
        "caption": "長輩們圍坐在客廳，過年就是要熱熱鬧鬧。"
-      },
-      {
-       "type": "photo",
-       "src": "photos/mid-2000s-36.jpg",
-       "thumb": "thumbs/mid-2000s-36.jpg",
-       "caption": "老家客廳的木櫃和沙發，裝著滿滿的回憶。"
       },
       {
        "type": "photo",
