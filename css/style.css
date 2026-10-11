@@ -187,8 +187,10 @@ footer{text-align:center;padding:1.6rem;color:var(--muted);font-size:.85rem;back
 .branches{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.6rem;width:100%;max-width:960px}
 .branch{background:rgba(255,255,255,.65);border:1px solid var(--line);border-radius:12px;padding:1.2rem 1rem 1.3rem;display:flex;flex-direction:column;align-items:center;position:relative;height:100%;min-height:0}
 .branch-num{font-family:"Noto Serif TC",serif;color:var(--gold);letter-spacing:.25em;font-size:.85rem;margin:0 0 .9rem}
-.branch-head{display:flex;align-items:stretch;justify-content:center;gap:.55rem;width:100%;flex-wrap:wrap}
-.branch-head .person{flex:1 1 130px;max-width:200px;min-width:0;padding-top:1.4rem;height:auto;align-self:stretch}
+.branch-head{display:flex;align-items:stretch;justify-content:center;gap:.55rem;width:100%;flex-wrap:nowrap}
+.branch-head .person,.branch-head .person.spouse{flex:0 0 168px;width:168px;max-width:168px;min-width:168px;padding-top:1.4rem;min-height:252px;height:252px;align-self:stretch;box-sizing:border-box;overflow:visible}
+.branch-head .person .pname{min-height:2.55em;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.branch-head .person .pmeta{min-height:1.1em}
 .spouse-bond{align-self:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;flex:0 0 auto;min-width:52px;padding:.1rem 0}
 .spouse-bond-mark{width:32px;height:32px;border-radius:50%;background:var(--gold);color:#fff;font-size:.75rem;display:flex;align-items:center;justify-content:center;font-family:"Noto Serif TC",serif;box-shadow:0 0 0 3px var(--paper)}
 .spouse-bond.divorced .spouse-bond-mark{background:#7a9bb8}
@@ -201,8 +203,8 @@ footer{text-align:center;padding:1.6rem;color:var(--muted);font-size:.85rem;back
 .person.spouse .pname{font-size:1.15rem}
 @media (max-width:720px){
  .branches{grid-template-columns:1fr;max-width:360px}
- .branch-head{flex-direction:column;align-items:center}
- .branch-head .person{max-width:260px;width:100%;min-width:0;flex:0 0 auto;min-height:0}
+ .branch-head{flex-direction:column;align-items:center;flex-wrap:wrap}
+ .branch-head .person,.branch-head .person.spouse{max-width:260px;width:min(260px,100%);min-width:0;flex:0 0 auto;min-height:252px;height:252px}
  .spouse-bond{margin:.2rem 0}
 }
 
@@ -212,15 +214,9 @@ footer{text-align:center;padding:1.6rem;color:var(--muted);font-size:.85rem;back
 /* unify avatar circles */
 .avatar,.avatar.seal,.person.gk .avatar,.person.spouse .avatar{width:92px;height:92px;margin:0 auto .7rem}
 .avatar.seal{font-size:2.1rem}
-.person.gk,.person.spouse,.branch-head .person{min-height:0}
+/* branch-head cards use fixed 252px; keep gk min-height from .person.gk */
 
 .aka{font-size:.62rem;color:var(--muted);letter-spacing:.02em}
-
-
-
-.pname+
-
-
 
 
 
@@ -281,3 +277,12 @@ html.pw-locked{overflow:hidden}
 
 .death-line{margin-top:.15rem!important;display:flex;align-items:center;justify-content:center;gap:.35rem;flex-wrap:wrap;white-space:normal}
 .death-line .tag-passed{flex:0 0 auto}
+
+/* Equal meta footprint: do not stretch cards via death-only min-heights */
+.branch-head .person .pmeta + .pmeta{margin-top:.1rem}
+.elder .pmeta + .pmeta{margin-top:.1rem}
+.pmeta .tag-passed{margin-left:.15rem;vertical-align:middle}
+.death-date-only{margin-top:.1rem!important;opacity:.9}
+
+.family-cover{margin:1.4rem auto 0;max-width:720px;padding:0 1rem}
+.family-cover img{width:100%;height:auto;border-radius:12px;box-shadow:0 12px 32px rgba(30,70,120,.16);border:1px solid var(--line);display:block}
