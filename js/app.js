@@ -1,5 +1,6 @@
-/* 陳家紀錄：分類相簿 + 燈箱（第 N / M 張）
- * 網址 #g-<stageId>-<n> 代表打開某個分類；#middle 等階段 id 會回到分類選單。 */
+/* 陳家紀錄：相簿（每個分類一條可左右滑動的照片列）+ 燈箱（第 N / M 張）
+ * 每個分類直接在相簿頁左右滑動瀏覽，上方顯示「第 N / M 張」；點照片可全螢幕放大。
+ * 網址 #g-<stageId>-<n> 會捲到該分類；#middle 等時期 id 為一般錨點。 */
 (function(){
   var D=window.SITE_DATA;
   var album=document.getElementById('album');
@@ -7,117 +8,93 @@
   function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
   // ---- flatten categories ----
-  var cats=[],byKey={},stageIds={};
+  var cats=[],byKey={};
   D.stages.forEach(function(st){
-    stageIds[st.id]=st;
     st.groups.forEach(function(g,i){
       var allVideo=g.items.every(function(it){return it.type==='video'});
-      var c={key:'g-'+st.id+'-'+(i+1),stage:st,group:g,title:g.title||st.title,
+      var c={key:'g-'+st.id+'-'+(i+1),stage:st,group:g,items:g.items,title:g.title||st.title,
         tag:g.title?st.title+'・'+g.title:st.title,unit:allVideo?'部':'張',
-        noun:allVideo?'部影片':'張照片',featured:g.title==='珍藏影片',idx:cats.length};
-      var first=g.items[0]||{};c.cover=first.type==='video'?first.poster:first.thumb;
+        noun:allVideo?'部影片':'張照片',idx:cats.length,cur:0};
       cats.push(c);byKey[c.key]=c;
     });
   });
 
   // ---- skeleton ----
-  album.innerHTML=
-    '<div class="album-picker" id="album-picker">'+
-      '<div class="album-intro"><h2 class="section-title">相簿</h2><p>照片依時期與主題分類，點一個分類就只看那一組；看完可以直接切換到下一個分類。</p></div>'+
-      '<nav class="stage-tabs" aria-label="時期">'+D.stages.map(function(st){return '<a href="#'+esc(st.id)+'">'+esc(st.title)+'</a>'}).join('')+'</nav>'+
-      '<div class="picker-stages"></div>'+
-    '</div>'+
-    '<div class="album-view" id="album-view" hidden>'+
-      '<div class="album-bar">'+
-        '<button type="button" class="album-back" aria-label="回到分類選單"><span aria-hidden="true">‹</span> 分類</button>'+
-        '<label class="album-select-wrap"><span class="sr-only">切換分類</span><select class="album-select"></select></label>'+
-      '</div>'+
-      '<header class="album-head"><p class="album-stage"></p><h2 class="album-title"></h2><p class="album-meta"></p></header>'+
-      '<div class="album-content"></div>'+
-      '<div class="album-pager"><a class="pager-prev" href="#"></a><a class="pager-next" href="#"></a></div>'+
-    '</div>';
-
-  var picker=document.getElementById('album-picker'),view=document.getElementById('album-view');
-  var pickerStages=picker.querySelector('.picker-stages');
-  var sel=view.querySelector('.album-select'),content=view.querySelector('.album-content');
-
-  // picker: one block per stage, cover cards per category
+  var html='<div class="album-intro"><h2 class="section-title">相簿</h2><p>照片依時期與主題分類。每個分類直接<strong>左右滑動</strong>就能一張一張看，上方會顯示「第幾張／共幾張」；點照片可以全螢幕放大。</p></div>'+
+    '<nav class="stage-tabs" aria-label="時期">'+D.stages.map(function(st){return '<a href="#'+esc(st.id)+'">'+esc(st.title)+'</a>'}).join('')+'</nav>';
   D.stages.forEach(function(st){
-    var blk=document.createElement('section');blk.className='picker-stage';blk.id=st.id;
-    var html='<div class="stage-head"><h2>'+esc(st.title)+'</h2><span class="era">'+esc(st.era)+'</span></div>'+
-      (st.desc?'<p class="stage-desc">'+esc(st.desc)+'</p>':'')+'<div class="cat-grid">';
+    html+='<section class="picker-stage" id="'+esc(st.id)+'"><div class="stage-head"><h2>'+esc(st.title)+'</h2><span class="era">'+esc(st.era)+'</span></div>'+
+      (st.desc?'<p class="stage-desc">'+esc(st.desc)+'</p>':'');
     cats.forEach(function(c){if(c.stage!==st)return;
-      html+='<a class="cat-card'+(c.unit==='部'?' is-video':'')+'" href="#'+c.key+'">'+
-        '<span class="cat-cover"><img loading="lazy" src="'+esc(c.cover)+'" alt="">'+(c.unit==='部'?'<span class="play small"></span>':'')+'</span>'+
-        '<span class="cat-name">'+esc(c.title)+'</span>'+
-        '<span class="cat-count">'+c.group.items.length+' '+c.noun+'</span></a>';
+      html+='<section class="cat-row" id="'+c.key+'" data-key="'+c.key+'" aria-label="'+esc(c.title)+'">'+
+        '<div class="cat-row-head">'+
+          '<h3 class="cat-row-title">'+esc(c.title)+'<small>'+c.items.length+' '+c.noun+'</small></h3>'+
+          '<div class="cat-row-ctrl">'+
+            '<button type="button" class="strip-btn strip-prev" aria-label="上一'+c.unit+'">‹</button>'+
+            '<span class="strip-count" aria-live="polite">第 1 / '+c.items.length+' '+c.unit+'</span>'+
+            '<button type="button" class="strip-btn strip-next" aria-label="下一'+c.unit+'">›</button>'+
+          '</div>'+
+        '</div>'+
+        '<div class="strip-bar"><i style="width:'+(100/c.items.length)+'%"></i></div>'+
+        '<div class="strip" tabindex="0" role="region" aria-roledescription="輪播" aria-label="'+esc(c.title)+'，左右滑動瀏覽">'+
+        c.items.map(function(it,i){
+          var th=it.type==='video'?it.poster:it.thumb,v=it.type==='video';
+          return '<figure class="slide'+(v?' video':'')+'" data-i="'+i+'">'+
+            '<button type="button" class="slide-media" aria-label="放大第 '+(i+1)+' '+c.unit+'">'+
+              '<img '+(i<2?'':'loading="lazy" ')+'src="'+esc(th)+'" alt="'+esc(it.caption)+'" draggable="false">'+
+              (v?'<span class="play"></span><span class="dur">'+esc(it.dur)+'</span>':'')+
+            '</button>'+
+            '<figcaption>'+esc(it.caption)+'</figcaption></figure>';
+        }).join('')+
+        '</div></section>';
     });
-    blk.innerHTML=html+'</div>';pickerStages.appendChild(blk);
+    html+='</section>';
+  });
+  album.innerHTML=html;
+
+  // ---- per-category strip behaviour ----
+  var rows={};
+  album.querySelectorAll('.cat-row').forEach(function(row){
+    var c=byKey[row.dataset.key],strip=row.querySelector('.strip'),slides=strip.querySelectorAll('.slide'),
+        cnt=row.querySelector('.strip-count'),bar=row.querySelector('.strip-bar i'),
+        bp=row.querySelector('.strip-prev'),bn=row.querySelector('.strip-next');
+    var r={c:c,strip:strip,slides:slides};rows[c.key]=r;
+    function update(i){c.cur=i;cnt.textContent='第 '+(i+1)+' / '+slides.length+' '+c.unit;
+      bar.style.width=((i+1)/slides.length*100)+'%';bp.disabled=i===0;bn.disabled=i===slides.length-1}
+    function nearest(){var mid=strip.scrollLeft+strip.clientWidth/2,best=0,bd=1e9;
+      for(var k=0;k<slides.length;k++){var s=slides[k],d=Math.abs(s.offsetLeft+s.offsetWidth/2-mid);if(d<bd){bd=d;best=k}}return best}
+    r.go=function(i,smooth){i=Math.max(0,Math.min(slides.length-1,i));var s=slides[i];
+      strip.scrollTo({left:s.offsetLeft+s.offsetWidth/2-strip.clientWidth/2,behavior:smooth===false?'auto':'smooth'});update(i)};
+    var ticking=false;
+    strip.addEventListener('scroll',function(){if(ticking)return;ticking=true;
+      requestAnimationFrame(function(){ticking=false;var i=nearest();if(i!==c.cur)update(i)})},{passive:true});
+    bp.addEventListener('click',function(){r.go(c.cur-1)});
+    bn.addEventListener('click',function(){r.go(c.cur+1)});
+    strip.addEventListener('keydown',function(e){
+      if(e.target!==strip)return;
+      if(e.key==='ArrowLeft'){e.preventDefault();r.go(c.cur-1)}
+      else if(e.key==='ArrowRight'){e.preventDefault();r.go(c.cur+1)}
+      else if(e.key==='Enter'){e.preventDefault();open(c,c.cur)}});
+    slides.forEach(function(s,i){s.querySelector('.slide-media').addEventListener('click',function(){
+      if(i!==c.cur){r.go(i);return}
+      open(c,i)})});
+    update(0);
   });
 
-  // select: optgroups by stage
-  D.stages.forEach(function(st){
-    var og=document.createElement('optgroup');og.label=st.title;
-    cats.forEach(function(c){if(c.stage!==st)return;var o=document.createElement('option');o.value=c.key;o.textContent=c.title+'（'+c.group.items.length+'）';og.appendChild(o)});
-    sel.appendChild(og);
-  });
-  sel.addEventListener('change',function(){location.hash='#'+sel.value});
-  view.querySelector('.album-back').addEventListener('click',function(){location.hash='#'+(current?current.stage.id:'album')});
-
-  // ---- render one category ----
-  var current=null,items=[];
-  function renderCat(c){
-    current=c;items=c.group.items;sel.value=c.key;
-    view.querySelector('.album-stage').innerHTML=esc(c.stage.title)+' <span class="era">'+esc(c.stage.era)+'</span>';
-    view.querySelector('.album-title').textContent=c.title;
-    view.querySelector('.album-meta').textContent='共 '+items.length+' '+c.noun+(c.featured?'':'・點任一'+c.unit+'放大，左右滑動切換');
-    content.innerHTML='';
-    if(c.featured){
-      var fl=document.createElement('div');fl.className='feature-list';
-      items.forEach(function(it){var r=document.createElement('div');r.className='frow';
-        r.innerHTML='<div class="fmedia"><video controls preload="none" playsinline poster="'+esc(it.poster)+'" src="'+esc(it.src)+'"></video></div><div class="ftext">'+esc(it.caption)+'<small>影片長度 '+esc(it.dur)+'</small></div>';
-        fl.appendChild(r)});
-      content.appendChild(fl);
-    }else{
-      var gal=document.createElement('div');gal.className='gallery';
-      items.forEach(function(it,i){
-        var f=document.createElement('figure');f.className='card'+(it.type==='video'?' video':'');
-        var th=it.type==='video'?it.poster:it.thumb;
-        f.innerHTML='<div class="media"><img loading="lazy" src="'+esc(th)+'" alt="'+esc(it.caption)+'"><span class="num">'+(i+1)+'</span>'+(it.type==='video'?'<span class="play"></span><span class="dur">'+esc(it.dur)+'</span>':'')+'</div><figcaption>'+esc(it.caption)+'</figcaption>';
-        f.tabIndex=0;f.setAttribute('role','button');
-        f.addEventListener('click',function(){open(i)});
-        f.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open(i)}});
-        gal.appendChild(f)});
-      content.appendChild(gal);
-    }
-    var prev=cats[c.idx-1],next=cats[c.idx+1];
-    var pp=view.querySelector('.pager-prev'),pn=view.querySelector('.pager-next');
-    pp.hidden=!prev;pn.hidden=!next;
-    if(prev){pp.href='#'+prev.key;pp.innerHTML='<small>‹ 上一個分類</small>'+esc(prev.title)}
-    if(next){pn.href='#'+next.key;pn.innerHTML='<small>下一個分類 ›</small>'+esc(next.title)}
-  }
-
-  function show(which){picker.hidden=which!=='picker';view.hidden=which!=='view'}
+  // ---- deep links ----
   function route(initial){
     var h=decodeURIComponent((location.hash||'').slice(1));
-    if(byKey[h]){
-      if(lb.classList.contains('open'))close();
-      renderCat(byKey[h]);show('view');
-      album.scrollIntoView({behavior:initial?'auto':'smooth',block:'start'});
-      return;
-    }
-    if(stageIds[h]||h==='album'){
-      var wasView=!view.hidden;show('picker');
-      if(wasView||initial){var el=document.getElementById(h);if(el)el.scrollIntoView({behavior:initial?'auto':'smooth',block:'start'})}
-    }
+    if(byKey[h]){if(lb.classList.contains('open'))close();
+      var el=document.getElementById(h);if(el)el.scrollIntoView({behavior:initial?'auto':'smooth',block:'start'})}
   }
 
-  // pause other inline videos when one plays
+  // pause other videos when one plays
   document.addEventListener('play',function(e){document.querySelectorAll('video').forEach(function(v){if(v!==e.target)v.pause()})},true);
 
-  // ---- lightbox (scoped to current category) ----
+  // ---- lightbox (scoped to one category) ----
   var lb=document.getElementById('lb'),stage=lb.querySelector('.lb-stage'),tg=lb.querySelector('.lb-tag'),cap=lb.querySelector('.lb-cap'),
-      cnt=lb.querySelector('.lb-count'),bar=lb.querySelector('.lb-bar i'),bPrev=lb.querySelector('.lb-prev'),bNext=lb.querySelector('.lb-next'),cur=0;
+      cnt=lb.querySelector('.lb-count'),bar=lb.querySelector('.lb-bar i'),bPrev=lb.querySelector('.lb-prev'),bNext=lb.querySelector('.lb-next'),
+      current=null,items=[],cur=0;
   function render(){var it=items[cur];stage.innerHTML='';
     if(it.type==='video'){var v=document.createElement('video');v.src=it.src;v.poster=it.poster;v.controls=true;v.autoplay=true;v.playsInline=true;stage.appendChild(v);}
     else{var im=document.createElement('img');im.src=it.src;im.alt=it.caption;stage.appendChild(im);}
@@ -127,9 +104,9 @@
     bPrev.disabled=cur===0;bNext.disabled=cur===items.length-1;
     [cur+1,cur-1].forEach(function(j){var n=items[j];if(n&&n.type!=='video'){var p=new Image();p.src=n.src}});
   }
-  function open(i){cur=i;render();lb.classList.add('open');lb.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
+  function open(c,i){current=c;items=c.items;cur=i;render();lb.classList.add('open');lb.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
   function close(){lb.classList.remove('open');lb.setAttribute('aria-hidden','true');stage.innerHTML='';document.body.style.overflow='';
-    var cards=content.querySelectorAll('.card');if(cards[cur])cards[cur].scrollIntoView({block:'nearest'})}
+    if(current&&rows[current.key])rows[current.key].go(cur,false)}
   function step(d){var n=cur+d;if(n<0||n>=items.length)return;cur=n;render()}
   lb.querySelector('.lb-close').onclick=close;
   bPrev.onclick=function(e){e.stopPropagation();step(-1)};
@@ -144,5 +121,5 @@
     sx=sy=null});
 
   window.addEventListener('hashchange',function(){route(false)});
-  show('picker');route(true);
+  route(true);
 })();
