@@ -278,3 +278,6 @@ html.pw-locked{overflow:hidden}
 }
 .avatar > .age.age-approx{font-style:normal}
 .avatar > .age[hidden]{display:none}
+
+.death-line{margin-top:.15rem!important;display:flex;align-items:center;justify-content:center;gap:.35rem;flex-wrap:wrap;white-space:normal}
+.death-line .tag-passed{flex:0 0 auto}
